@@ -1,0 +1,80 @@
+tty: true
+
+controller:
+  kind: daemonset
+
+services:
+ - name: k8saudit-webhook
+   type: NodePort
+   ports:
+     - port: 9765 # See plugin open_params
+       nodePort: 30007
+       protocol: TCP
+
+driver:
+  enabled: true
+  kind: modern-bpf
+  loader:
+    enabled: true
+
+falcoctl:
+  artifact:
+    install:
+      enabled: true
+    follow:
+      enabled: true
+  config:
+    artifact:
+      install:
+        resolveDeps: false
+        refs: [falco-rules:0, k8saudit-rules:0.5]
+      follow:
+        refs: [falco-rules:0, k8saudit-rules:0.5]
+
+falcosidekick:
+  enabled: true
+  fullfqdn: falco.alleaffengaffen.ch
+  webui:
+    enabled: true
+    ingress:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        ingress.kubernetes.io/force-ssl-redirect: "true"
+      hosts:
+      - host: falco.alleaffengaffen.ch
+        paths:
+        - path: /
+      tls:
+      - secretName: falcosidekick-tls
+        hosts:
+        - falco.alleaffengaffen.ch
+
+customRules:
+  banana_rules.yaml: |-
+    - rule: alleaffengaffen
+      desc: very dangerous app
+      condition: >
+        container.id != host and container.image contains "alleaffengaffen" and
+        evt.is_open_read = true or evt.is_open_write = true
+      output: alleaffengaffen opened %fd.name (container=%container.id,proc=%proc.name,pid=%proc.pid)
+      priority: ERROR
+
+falco:
+  rules_file:
+    - /etc/falco/falco_rules.yaml
+    - /etc/falco/k8s_audit_rules.yaml
+    - /etc/falco/rules.d
+  plugins:
+    - name: k8saudit
+      library_path: libk8saudit.so
+      init_config:
+      #   maxEventSize: 262144
+      #   webhookMaxBatchSize: 12582912
+      #   sslCertificate: /etc/falco/falco.pem
+      open_params: "http://:9765/k8s-audit"
+    - name: json
+      library_path: libjson.so
+      init_config: ""
+
+  load_plugins: [k8saudit, json]

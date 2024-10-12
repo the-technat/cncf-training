@@ -1,0 +1,81 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubernetes.io/metadata.name: alleaffengaffen
+    app.kubernetes.io/name: alleaffengaffen
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/audit: restricted
+  name: alleaffengaffen
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: alleaffengaffen
+  name: alleaffengaffen
+  namespace: alleaffengaffen
+spec:
+  internalTrafficPolicy: Cluster
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: alleaffengaffen
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: alleaffengaffen
+  name: alleaffengaffen
+  namespace: alleaffengaffen
+spec:
+  replicas: 4
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alleaffengaffen
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: alleaffengaffen
+    spec:
+      # securityContext:
+      #   runAsUser: 10000
+      # Note: can be anything, default is 10000 but doesn't matter as container writes only to specified tmp
+      containers:
+        - image: ghcr.io/alleaffengaffen/alleaffengaffen:main
+          imagePullPolicy: Always
+          name: alleaffengaffen
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 10m
+              memory: 10Mi
+          volumeMounts:
+            - name: config-tmp
+              mountPath: /config/caddy
+      volumes:
+        - name: config-tmp
+          emptyDir: {}
