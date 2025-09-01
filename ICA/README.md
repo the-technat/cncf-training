@@ -71,7 +71,9 @@ The app should now be accessible on `podinfo.kindccm-8fb065a4766b.orb.local` (re
 Source: https://istio.io/latest/docs/examples/bookinfo/
 
 ```console
-kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.27/samples/bookinfo/platform/kube/bookinfo.yaml
-kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.27/samples/bookinfo/networking/bookinfo-gateway.yaml
-kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.27/samples/bookinfo/networking/destination-rule-all.yaml
+kubectl create ns bookinfo
+kubectl label ns bookinfo istio.io/rev=1-27
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.27/samples/bookinfo/platform/kube/bookinfo.yaml -n bookinfo
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.27/samples/bookinfo/networking/bookinfo-gateway.yaml -n bookinfo
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.27/samples/bookinfo/networking/destination-rule-all.yaml -n bookinfo
 ```
