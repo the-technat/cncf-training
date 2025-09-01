@@ -1,0 +1,26 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: podinfo
+  namespace: podinfo
+spec:
+  hosts:
+  - "podinfo.kindccm-80343f22932d.orb.local"
+  - "podinfo.podinfo.svc.cluster.local"
+  gateways:
+  - istio-ingress/default # global listener for the kindccm domain with a shared cert
+  http:
+  - match:
+    - headers:
+        user:
+          regex: "^r.+"
+    route:
+    - destination:
+        host: podinfo-6-9
+        port:
+          number: 9898
+  - route:
+    - destination:
+        host: podinfo-6-8
+        port:
+          number: 9898

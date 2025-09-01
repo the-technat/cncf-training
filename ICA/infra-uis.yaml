@@ -1,0 +1,68 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: default
+  namespace: istio-ingress
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*.kindccm-80343f22932d.orb.local"
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: kiali
+  namespace: istio-ingress
+spec:
+  hosts:
+  - kiali.kindccm-80343f22932d.orb.local
+  - kiali.kiali.svc.cluster.local
+  gateways:
+  - default
+  http:
+  - route:
+    - destination:
+        port:
+          number: 20001
+        host: kiali.kiali.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: prometheus
+  namespace: istio-ingress
+spec:
+  hosts:
+  - prometheus.kindccm-80343f22932d.orb.local
+  gateways:
+  - default
+  http:
+  - route:
+    - destination:
+        port:
+          number: 80
+        host: prometheus-server.monitoring.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: grafana
+  namespace: istio-ingress
+spec:
+  hosts:
+  - grafana.kindccm-80343f22932d.orb.local
+  - grafana.istio-system.svc.cluster.local
+  gateways:
+  - default
+  http:
+  - route:
+    - destination:
+        port:
+          number: 3000
+        host: grafana.istio-system.svc.cluster.local
