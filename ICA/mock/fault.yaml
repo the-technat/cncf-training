@@ -1,0 +1,30 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: backend
+spec:
+  hosts:
+  - backend
+  http:
+  - fault:
+      delay:
+        fixedDelay: 5s
+        percentage:
+          value: 100
+    match:
+      - uri:
+          prefix: /delay
+    route:
+    - destination:
+        host: backend
+  - fault:
+      abort:
+        httpStatus: 403
+        percentage:
+          value: 100
+    match:
+      - uri:
+          prefix: /fault
+    route:
+    - destination:
+        host: backend

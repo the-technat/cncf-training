@@ -1,0 +1,42 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: payments-and-frontend
+  namespace: default
+spec:
+  selector:
+    service.istio.io/canonical-name: frontend-ingress
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - mycompany.com
+    - 192.168.97.7 
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: payments-and-frontend
+  namespace: default
+spec:
+  hosts:
+  - mycompany.com
+  - 192.168.97.7 
+  gateways:
+  - payments-and-frontend
+  - mesh # applies to all the sidecars in the mesh
+  http:
+  - match:
+    - uri:
+        prefix: /payments
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: frontend.default.svc.cluster.local
+  - route:
+    - destination:
+        host: frontend.default.svc.cluster.local
+

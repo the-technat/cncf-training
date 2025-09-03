@@ -1,0 +1,26 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+ name: allow-nothing
+ namespace: payments
+spec:
+  {}
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-certain
+  namespace: default
+spec:
+  action: ALLOW
+  selector:
+    matchLabels:
+      app: customers
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/payments", "cluster.local/ns/default/sa/orders"]
+    to:
+    - operation:
+        methods: ["GET"]
+        paths: ["/api"]
